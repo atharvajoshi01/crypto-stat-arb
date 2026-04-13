@@ -53,3 +53,4 @@ target-version = "py310"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+collect_ignore = ["cryptoarb"]
