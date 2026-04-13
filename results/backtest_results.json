@@ -1,0 +1,69 @@
+{
+  "strategy": "crypto_stat_arb",
+  "test_period": "2025-02-26 to 2026-01-01",
+  "pairs_count": 3,
+  "pairs": [
+    {
+      "asset_a": "SOL_USD",
+      "asset_b": "DOGE_USD",
+      "beta": 0.34903940371613074,
+      "intercept": 5.739020469472639,
+      "adf_stat": -3.278435196092274,
+      "adf_pvalue": 0.01587037420375493,
+      "half_life": 8.442932553563006,
+      "correlation": 0.912408916921435,
+      "cointegrated": true
+    },
+    {
+      "asset_a": "ETH_USD",
+      "asset_b": "DOT_USD",
+      "beta": 0.5596913043430641,
+      "intercept": 7.040753601536606,
+      "adf_stat": -3.233491761109304,
+      "adf_pvalue": 0.01812607162947926,
+      "half_life": 10.081248476907101,
+      "correlation": 0.8969026813705393,
+      "cointegrated": true
+    },
+    {
+      "asset_a": "ETH_USD",
+      "asset_b": "ATOM_USD",
+      "beta": 0.5074521690667088,
+      "intercept": 7.106799450014868,
+      "adf_stat": -3.17258614712301,
+      "adf_pvalue": 0.02162735581608536,
+      "half_life": 11.344836422102034,
+      "correlation": 0.8716443039961164,
+      "cointegrated": true
+    }
+  ],
+  "raw_metrics": {
+    "total_return": "-16.18%",
+    "annual_return": "-18.77%",
+    "annual_volatility": "7.99%",
+    "sharpe_ratio": "-2.56",
+    "sortino_ratio": "-2.19",
+    "max_drawdown": "-18.38%",
+    "max_drawdown_duration_days": 306,
+    "calmar_ratio": "-1.02",
+    "win_rate": "26.1%",
+    "avg_daily_turnover": "0.0567",
+    "total_cost": "0.1054",
+    "total_days": 310
+  },
+  "managed_metrics": {
+    "total_return": "-13.52%",
+    "annual_return": "-15.72%",
+    "annual_volatility": "7.43%",
+    "sharpe_ratio": "-2.27",
+    "sortino_ratio": "-1.84",
+    "max_drawdown": "-14.63%",
+    "max_drawdown_duration_days": 306,
+    "calmar_ratio": "-1.07",
+    "win_rate": "24.2%",
+    "avg_daily_turnover": "0.0567",
+    "total_cost": "0.1054",
+    "total_days": 310
+  },
+  "btc_correlation": "0.0257"
+}
