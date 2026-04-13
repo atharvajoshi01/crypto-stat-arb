@@ -78,15 +78,15 @@ def detect_regimes(
     high_threshold = np.percentile(vol_clean, high_vol_pct)
     crisis_threshold = np.percentile(vol_clean, crisis_pct)
 
-    # Classify
-    regimes = pd.Series(MarketRegime.NORMAL, index=returns.index)
+    # Classify using string values for cross-version pandas compatibility
+    regimes = pd.Series(MarketRegime.NORMAL.value, index=returns.index)
 
-    regimes[rolling_vol_ann < low_threshold] = MarketRegime.LOW_VOL
-    regimes[rolling_vol_ann > high_threshold] = MarketRegime.HIGH_VOL
-    regimes[rolling_vol_ann > crisis_threshold] = MarketRegime.CRISIS
+    regimes[rolling_vol_ann < low_threshold] = MarketRegime.LOW_VOL.value
+    regimes[rolling_vol_ann > high_threshold] = MarketRegime.HIGH_VOL.value
+    regimes[rolling_vol_ann > crisis_threshold] = MarketRegime.CRISIS.value
 
     # NaN periods default to normal
-    regimes[rolling_vol_ann.isna()] = MarketRegime.NORMAL
+    regimes[rolling_vol_ann.isna()] = MarketRegime.NORMAL.value
 
     logger.info(f"Regime detection: {regimes.value_counts().to_dict()}")
 
@@ -122,10 +122,10 @@ def regime_adjusted_weights(
     """
     if regime_scales is None:
         regime_scales = {
-            MarketRegime.LOW_VOL: 1.2,
-            MarketRegime.NORMAL: 1.0,
-            MarketRegime.HIGH_VOL: 0.5,
-            MarketRegime.CRISIS: 0.0,
+            MarketRegime.LOW_VOL.value: 1.2,
+            MarketRegime.NORMAL.value: 1.0,
+            MarketRegime.HIGH_VOL.value: 0.5,
+            MarketRegime.CRISIS.value: 0.0,
         }
 
     scale = regimes.map(regime_scales).fillna(1.0)
@@ -150,7 +150,7 @@ def compute_regime_performance(
     results = []
 
     for regime in MarketRegime:
-        mask = regimes == regime
+        mask = regimes == regime.value
         r = returns[mask]
 
         if len(r) < 5:

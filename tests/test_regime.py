@@ -35,8 +35,8 @@ class TestDetectRegimes:
         result = detect_regimes(returns, vol_lookback=20)
         # Days 200-300 are volatile — should have some HIGH_VOL or CRISIS
         volatile_period = result.regimes.iloc[210:290]
-        high_vol_days = (volatile_period == MarketRegime.HIGH_VOL).sum()
-        crisis_days = (volatile_period == MarketRegime.CRISIS).sum()
+        high_vol_days = (volatile_period == MarketRegime.HIGH_VOL.value).sum()
+        crisis_days = (volatile_period == MarketRegime.CRISIS.value).sum()
         assert (high_vol_days + crisis_days) > 10
 
     def test_current_regime(self):
@@ -56,8 +56,8 @@ class TestRegimeAdjustedWeights:
     def test_reduces_in_crisis(self):
         dates = pd.date_range("2023-01-01", periods=100, freq="D")
         weights = pd.DataFrame({"A": [0.5] * 100, "B": [-0.5] * 100}, index=dates)
-        regimes = pd.Series(MarketRegime.NORMAL, index=dates)
-        regimes.iloc[50:70] = MarketRegime.CRISIS
+        regimes = pd.Series(MarketRegime.NORMAL.value, index=dates)
+        regimes.iloc[50:70] = MarketRegime.CRISIS.value
 
         scaled = regime_adjusted_weights(weights, regimes)
         # Crisis period should be zero
@@ -68,7 +68,7 @@ class TestRegimeAdjustedWeights:
     def test_increases_in_low_vol(self):
         dates = pd.date_range("2023-01-01", periods=50, freq="D")
         weights = pd.DataFrame({"A": [0.5] * 50}, index=dates)
-        regimes = pd.Series(MarketRegime.LOW_VOL, index=dates)
+        regimes = pd.Series(MarketRegime.LOW_VOL.value, index=dates)
 
         scaled = regime_adjusted_weights(weights, regimes)
         assert scaled["A"].iloc[0] == 0.6  # 0.5 * 1.2
