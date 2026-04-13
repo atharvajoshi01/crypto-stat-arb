@@ -47,6 +47,9 @@ Homepage = "https://github.com/atharvajoshi01/crypto-stat-arb"
 Repository = "https://github.com/atharvajoshi01/crypto-stat-arb"
 Issues = "https://github.com/atharvajoshi01/crypto-stat-arb/issues"
 
+[tool.setuptools.packages.find]
+include = ["cryptoarb*"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py310"
