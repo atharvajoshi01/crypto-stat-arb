@@ -18,6 +18,14 @@ class TestDrawdown:
         # Max drawdown: (0.9 - 1.2) / 1.2 = -0.25
         assert np.isclose(dd.min(), -0.25)
 
+    def test_drawdown_with_zero_cumulative(self):
+        # Strategy that loses all value — running_max hits 0
+        cumulative = pd.Series([1.0, 0.5, 0.0, 0.0])
+        dd = compute_drawdown(cumulative)
+        # Should not produce -inf or NaN
+        assert np.all(np.isfinite(dd))
+        assert dd.iloc[1] == -0.5  # normal drawdown still works
+
     def test_drawdown_duration(self):
         cumulative = pd.Series([1.0, 1.2, 1.1, 1.0, 0.9, 1.0, 1.1, 1.3])
         duration = compute_max_drawdown_duration(cumulative)

@@ -65,9 +65,14 @@ class PerformanceMetrics:
 
 
 def compute_drawdown(cumulative: pd.Series) -> pd.Series:
-    """Compute drawdown series from cumulative returns."""
+    """Compute drawdown series from cumulative returns.
+
+    Handles edge case where running max is zero (e.g., strategy loses
+    all value) by treating those points as zero drawdown.
+    """
     running_max = cumulative.cummax()
-    return (cumulative - running_max) / running_max
+    safe_max = running_max.replace(0, np.nan)
+    return ((cumulative - running_max) / safe_max).fillna(0.0)
 
 
 def compute_max_drawdown_duration(cumulative: pd.Series) -> int:

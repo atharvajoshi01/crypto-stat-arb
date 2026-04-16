@@ -78,3 +78,9 @@ class TestPairDrawdown:
     def test_empty(self):
         dd = compute_pair_drawdown(pd.Series([], dtype=float))
         assert dd == 0.0
+
+    def test_total_loss(self):
+        # -100% return → cumulative hits 0, should not produce -inf
+        returns = pd.Series([0.05, -1.0])
+        dd = compute_pair_drawdown(returns)
+        assert np.isfinite(dd)

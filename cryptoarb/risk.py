@@ -147,5 +147,7 @@ def compute_pair_drawdown(
     if len(cumulative) == 0:
         return 0.0
     running_max = cumulative.cummax()
+    if running_max.iloc[-1] == 0:
+        return 0.0
     current_dd = (cumulative.iloc[-1] - running_max.iloc[-1]) / running_max.iloc[-1]
     return float(current_dd)
