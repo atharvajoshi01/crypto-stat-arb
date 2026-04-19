@@ -68,6 +68,7 @@ def compute_half_life(spread: pd.Series) -> float:
     theta = model.params[1]
 
     if theta >= 1.0 or theta <= 0.0:
+        logger.debug(f"Non-mean-reverting spread: theta={theta:.4f}")
         return float("inf")
 
     return -np.log(2) / np.log(theta)

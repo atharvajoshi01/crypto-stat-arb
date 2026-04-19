@@ -79,12 +79,22 @@ def kalman_hedge_ratio(
         # Innovation covariance
         S = F @ P @ F + Ve
 
+        # Guard against singular/negative innovation covariance
+        if S <= 0:
+            logger.warning(f"Kalman filter: non-positive innovation variance at t={t}, resetting P")
+            P = np.eye(2)
+            continue
+
         # Kalman gain
         K = P @ F / S  # (2×1)
 
         # Update
         theta = theta + K * e
         P = P - np.outer(K, F @ P)
+
+        # Ensure P stays positive semi-definite
+        P = (P + P.T) / 2
+        P = np.maximum(P, 1e-10 * np.eye(2))
 
         # Store
         intercepts[t] = theta[0]

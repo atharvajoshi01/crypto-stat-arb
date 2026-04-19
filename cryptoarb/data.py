@@ -157,8 +157,16 @@ def clean_price_matrix(
 
 
 def log_prices(prices: pd.DataFrame) -> pd.DataFrame:
-    """Compute log prices."""
-    return np.log(prices)
+    """Compute log prices.
+
+    Warns if non-positive values are found, which produce -inf/NaN.
+    """
+    n_invalid = (prices <= 0).sum().sum()
+    if n_invalid > 0:
+        logger.warning(
+            f"Found {n_invalid} non-positive prices; these will become NaN in log space"
+        )
+    return np.log(prices.clip(lower=1e-10))
 
 
 def save_cache(prices: pd.DataFrame, path: str) -> None:

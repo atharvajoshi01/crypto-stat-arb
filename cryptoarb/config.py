@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class DataConfig(BaseModel):
@@ -27,6 +27,27 @@ class PairConfig(BaseModel):
     max_pairs: int = Field(20, description="Max number of pairs to trade")
     formation_window: int = Field(504, description="Days for pair selection (2 years)")
 
+    @field_validator("min_correlation")
+    @classmethod
+    def correlation_in_range(cls, v: float) -> float:
+        if not 0.0 < v < 1.0:
+            raise ValueError(f"min_correlation must be in (0, 1), got {v}")
+        return v
+
+    @field_validator("adf_pvalue")
+    @classmethod
+    def pvalue_in_range(cls, v: float) -> float:
+        if not 0.0 < v < 1.0:
+            raise ValueError(f"adf_pvalue must be in (0, 1), got {v}")
+        return v
+
+    @field_validator("max_half_life")
+    @classmethod
+    def half_life_ordering(cls, v: float, info) -> float:
+        if "min_half_life" in info.data and v <= info.data["min_half_life"]:
+            raise ValueError(f"max_half_life ({v}) must be > min_half_life ({info.data['min_half_life']})")
+        return v
+
 
 class SignalConfig(BaseModel):
     """Signal generation parameters."""
@@ -37,6 +58,27 @@ class SignalConfig(BaseModel):
     rolling_window_multiplier: float = Field(
         2.0, description="Rolling window = multiplier × half_life"
     )
+
+    @field_validator("entry_z")
+    @classmethod
+    def entry_positive(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError(f"entry_z must be positive, got {v}")
+        return v
+
+    @field_validator("stop_z")
+    @classmethod
+    def stop_above_entry(cls, v: float, info) -> float:
+        if "entry_z" in info.data and v <= info.data["entry_z"]:
+            raise ValueError(f"stop_z ({v}) must be > entry_z ({info.data['entry_z']})")
+        return v
+
+    @field_validator("exit_z")
+    @classmethod
+    def exit_below_entry(cls, v: float, info) -> float:
+        if "entry_z" in info.data and v >= info.data["entry_z"]:
+            raise ValueError(f"exit_z ({v}) must be < entry_z ({info.data['entry_z']})")
+        return v
 
 
 class PortfolioConfig(BaseModel):
@@ -67,6 +109,13 @@ class RiskConfig(BaseModel):
     vol_scaling: bool = Field(True, description="Scale positions by inverse volatility")
     vol_target: float = Field(0.10, description="Target annual portfolio volatility")
     recoint_frequency_days: int = Field(30, description="Re-test cointegration every N days")
+
+    @field_validator("max_portfolio_drawdown", "max_pair_drawdown", "vol_target")
+    @classmethod
+    def fraction_in_range(cls, v: float) -> float:
+        if not 0.0 < v < 1.0:
+            raise ValueError(f"Value must be in (0, 1), got {v}")
+        return v
 
 
 class BacktestConfig(BaseModel):

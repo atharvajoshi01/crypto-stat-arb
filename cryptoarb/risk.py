@@ -128,7 +128,8 @@ def check_pair_health(
     try:
         adf_p = adfuller(spread, maxlag=int(np.sqrt(len(spread))))[1]
         return adf_p < adf_threshold
-    except Exception:
+    except (ValueError, np.linalg.LinAlgError) as e:
+        logger.warning(f"Pair health check failed for {asset_a}/{asset_b}: {e}")
         return False
 
 

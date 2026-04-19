@@ -62,8 +62,9 @@ def compute_rolling_hedge_ratio(
             model = OLS(a_win, b_const).fit()
             intercepts[i] = model.params[0]
             betas[i] = model.params[1]
-        except Exception:
-            pass
+        except (np.linalg.LinAlgError, ValueError) as e:
+            logger.debug(f"OLS failed at index {i}: {e}")
+            # betas[i] and intercepts[i] remain NaN
 
     return (
         pd.Series(betas, index=log_price_a.index, name="beta"),
