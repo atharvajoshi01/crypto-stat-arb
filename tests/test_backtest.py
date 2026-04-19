@@ -2,7 +2,6 @@
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from cryptoarb.backtest import run_backtest, BacktestResult
 from cryptoarb.config import StrategyConfig
