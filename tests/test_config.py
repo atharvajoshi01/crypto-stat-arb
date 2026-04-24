@@ -66,3 +66,17 @@ class TestParameterValidation:
             risk=RiskConfig(max_portfolio_drawdown=0.15),
         )
         assert config.pairs.min_correlation == 0.5
+
+
+class TestVersionConsistency:
+    def test_init_matches_pyproject(self):
+        """Ensure __version__ in __init__.py matches pyproject.toml."""
+        import tomllib
+        from pathlib import Path
+
+        import cryptoarb
+
+        pyproject = Path(__file__).parent.parent / "pyproject.toml"
+        with open(pyproject, "rb") as f:
+            data = tomllib.load(f)
+        assert cryptoarb.__version__ == data["project"]["version"]
