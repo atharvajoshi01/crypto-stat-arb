@@ -121,8 +121,8 @@ def evaluate(returns_df: pd.DataFrame, annualization: int = 365) -> PerformanceM
     total_return = cumulative.iloc[-1] / cumulative.iloc[0] - 1 if cumulative.iloc[0] != 0 else 0
     annual_return = (1 + total_return) ** (1 / years) - 1 if years > 0 else 0
 
-    # Volatility
-    daily_vol = net.std()
+    # Volatility (std with ddof=1 is NaN for n<=1)
+    daily_vol = net.std() if len(net) > 1 else 0.0
     annual_vol = daily_vol * np.sqrt(annualization)
 
     # Sharpe
@@ -131,7 +131,7 @@ def evaluate(returns_df: pd.DataFrame, annualization: int = 365) -> PerformanceM
 
     # Sortino (downside deviation)
     downside = net[net < 0]
-    downside_vol = downside.std() if len(downside) > 0 else 0
+    downside_vol = downside.std() if len(downside) > 1 else 0.0
     sortino = (daily_mean / downside_vol * np.sqrt(annualization)) if downside_vol > 0 else 0
 
     # Drawdown
