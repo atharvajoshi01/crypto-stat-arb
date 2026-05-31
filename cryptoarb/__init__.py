@@ -21,6 +21,11 @@ from cryptoarb.kalman import kalman_hedge_ratio, kalman_zscore
 from cryptoarb.regime import detect_regimes, regime_adjusted_weights, MarketRegime
 from cryptoarb.sensitivity import run_sensitivity, SensitivityReport
 from cryptoarb.attribution import factor_attribution, AttributionResult
+from cryptoarb.rediscovery import (
+    WalkForwardRediscovery,
+    RediscoveryHistory,
+    RediscoveryEvent,
+)
 
 __all__ = [
     "StrategyConfig",
@@ -54,4 +59,7 @@ __all__ = [
     "SensitivityReport",
     "factor_attribution",
     "AttributionResult",
+    "WalkForwardRediscovery",
+    "RediscoveryHistory",
+    "RediscoveryEvent",
 ]

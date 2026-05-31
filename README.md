@@ -366,7 +366,20 @@ python examples/real_data_backtest.py
 
 # Research notebook (generates all plots)
 python notebooks/research.py
+
+# Walk-forward pair re-discovery (drops broken pairs, finds new ones)
+python examples/rediscovery_example.py
 ```
+
+### Walk-Forward Pair Re-discovery
+
+Most stat-arb backtests discover a pair set on a training window and hold it
+fixed forever. In real markets cointegration is fragile: a pair that traded
+in 2020 may have decoupled by 2023. `cryptoarb.rediscovery.WalkForwardRediscovery`
+re-tests the current set on a rolling window, drops pairs whose cointegration
+has broken, and discovers fresh candidates. Pair turnover (added, dropped,
+retained, churn rate) is reported as a first-class metric so the universe
+stability is visible alongside the strategy's return metrics.
 
 ---
 
