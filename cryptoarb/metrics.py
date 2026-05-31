@@ -11,12 +11,22 @@ import pandas as pd
 
 @dataclass
 class PerformanceMetrics:
-    """Aggregated strategy performance metrics."""
+    """Aggregated strategy performance metrics.
+
+    The Sharpe family is reported in both gross and net form so the reader can
+    see how much of the predictive edge survives implementation cost. This is
+    Kolm's argument 4 made measurable: a signal that increases accuracy but
+    also increases turnover can reduce the investment process. We surface that
+    tradeoff as the `cost_drag` and `sharpe_per_unit_turnover` metrics.
+    """
 
     total_return: float
     annual_return: float
     annual_volatility: float
-    sharpe_ratio: float
+    sharpe_ratio: float            # net of costs
+    gross_sharpe_ratio: float       # before costs
+    cost_drag: float                # gross_sharpe - net_sharpe
+    sharpe_per_unit_turnover: float  # decision-quality score
     sortino_ratio: float
     max_drawdown: float
     max_drawdown_duration: int  # days
@@ -31,7 +41,10 @@ class PerformanceMetrics:
             "total_return": f"{self.total_return:.2%}",
             "annual_return": f"{self.annual_return:.2%}",
             "annual_volatility": f"{self.annual_volatility:.2%}",
-            "sharpe_ratio": f"{self.sharpe_ratio:.2f}",
+            "sharpe_ratio_net": f"{self.sharpe_ratio:.2f}",
+            "sharpe_ratio_gross": f"{self.gross_sharpe_ratio:.2f}",
+            "cost_drag": f"{self.cost_drag:.2f}",
+            "sharpe_per_unit_turnover": f"{self.sharpe_per_unit_turnover:.2f}",
             "sortino_ratio": f"{self.sortino_ratio:.2f}",
             "max_drawdown": f"{self.max_drawdown:.2%}",
             "max_drawdown_duration_days": self.max_drawdown_duration,
@@ -50,7 +63,10 @@ class PerformanceMetrics:
             f"Total Return:       {self.total_return:.2%}",
             f"Annual Return:      {self.annual_return:.2%}",
             f"Annual Volatility:  {self.annual_volatility:.2%}",
-            f"Sharpe Ratio:       {self.sharpe_ratio:.2f}",
+            f"Sharpe Ratio (net): {self.sharpe_ratio:.2f}",
+            f"Sharpe Ratio (gross): {self.gross_sharpe_ratio:.2f}",
+            f"Cost Drag:          {self.cost_drag:.2f} (gross - net)",
+            f"Sharpe / Turnover:  {self.sharpe_per_unit_turnover:.2f}",
             f"Sortino Ratio:      {self.sortino_ratio:.2f}",
             f"Max Drawdown:       {self.max_drawdown:.2%}",
             f"Max DD Duration:    {self.max_drawdown_duration} days",
@@ -109,7 +125,8 @@ def evaluate(returns_df: pd.DataFrame, annualization: int = 365) -> PerformanceM
     if len(net) == 0:
         return PerformanceMetrics(
             total_return=0, annual_return=0, annual_volatility=0,
-            sharpe_ratio=0, sortino_ratio=0, max_drawdown=0,
+            sharpe_ratio=0, gross_sharpe_ratio=0, cost_drag=0,
+            sharpe_per_unit_turnover=0, sortino_ratio=0, max_drawdown=0,
             max_drawdown_duration=0, calmar_ratio=0, win_rate=0,
             avg_daily_turnover=0, total_cost=0, total_days=0,
         )
@@ -125,9 +142,24 @@ def evaluate(returns_df: pd.DataFrame, annualization: int = 365) -> PerformanceM
     daily_vol = net.std() if len(net) > 1 else 0.0
     annual_vol = daily_vol * np.sqrt(annualization)
 
-    # Sharpe
+    # Net Sharpe (after costs). This is the deployable number.
     daily_mean = net.mean()
     sharpe = (daily_mean / daily_vol * np.sqrt(annualization)) if daily_vol > 0 else 0
+
+    # Gross Sharpe (before costs). Diagnostic only: shows the model's raw
+    # predictive edge in isolation. The gap between gross and net is the
+    # "cost drag" — how much of the edge implementation eats. Kolm's
+    # argument 4 made measurable.
+    if "gross_return" in returns_df:
+        gross = returns_df["gross_return"].dropna()
+        gross_mean = gross.mean()
+        gross_vol = gross.std() if len(gross) > 1 else 0.0
+        gross_sharpe = (
+            (gross_mean / gross_vol * np.sqrt(annualization)) if gross_vol > 0 else 0
+        )
+    else:
+        gross_sharpe = sharpe
+    cost_drag = gross_sharpe - sharpe
 
     # Sortino (downside deviation)
     downside = net[net < 0]
@@ -149,11 +181,20 @@ def evaluate(returns_df: pd.DataFrame, annualization: int = 365) -> PerformanceM
     avg_turnover = returns_df["turnover"].mean() if "turnover" in returns_df else 0
     total_cost = returns_df["cost"].sum() if "cost" in returns_df else 0
 
+    # Decision-quality score: Sharpe per unit of average daily turnover.
+    # Penalizes strategies that achieve a given Sharpe by trading too much.
+    # When turnover is ~0 (buy-and-hold edge cases) we return the net Sharpe
+    # so the metric stays interpretable instead of blowing up.
+    sharpe_per_unit_turnover = sharpe / avg_turnover if avg_turnover > 1e-6 else sharpe
+
     return PerformanceMetrics(
         total_return=total_return,
         annual_return=annual_return,
         annual_volatility=annual_vol,
         sharpe_ratio=sharpe,
+        gross_sharpe_ratio=gross_sharpe,
+        cost_drag=cost_drag,
+        sharpe_per_unit_turnover=sharpe_per_unit_turnover,
         sortino_ratio=sortino,
         max_drawdown=max_dd,
         max_drawdown_duration=max_dd_duration,
